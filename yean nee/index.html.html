@@ -1,0 +1,2267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <meta name="description" content="Lunar Quest - An interactive dual-view moon phase learning game for young astronomers.">
+  <title>Lunar Quest | 月相大冒险</title>
+  <style>
+    /* ==========================================================================
+       Lunar Quest - Mobile-First Educational Game Styles
+       Color Palette from PRD:
+         Deep Space: #0B132B (Dark Navy)
+         Sunlight Glow: #FDB813 (Solar Gold)
+         Moon Surface: #F4F4F6 (Pearl White)
+         Success / Accents: #4ECCA3 (Teal Green)
+       ========================================================================== */
+
+    :root {
+      --bg-deep-space: #0B132B;
+      --bg-panel: #142143;
+      --bg-panel-light: #1C2D5A;
+      --sun-gold: #FDB813;
+      --sun-glow: rgba(253, 184, 19, 0.45);
+      --moon-white: #F4F4F6;
+      --moon-dark: #2B3448;
+      --accent-teal: #4ECCA3;
+      --accent-teal-glow: rgba(78, 204, 163, 0.35);
+      --danger-red: #FF6B6B;
+      --text-primary: #FFFFFF;
+      --text-muted: #B8C2D8;
+      --border-radius-card: 20px;
+      --border-radius-btn: 16px;
+      --touch-target: 48px;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background-color: var(--bg-deep-space);
+      color: var(--text-primary);
+      font-family: var(--font-family);
+      font-size: 16px;
+      line-height: 1.4;
+      overflow-x: hidden;
+    }
+
+    /* Accessibility: Large contrast typography for 9-year-olds (18-24px) */
+    p, button, input, label {
+      font-size: 1.125rem; /* 18px */
+    }
+
+    /* Screen Reader Only Utility */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+
+    /* Missing Facts Tag for Review */
+    .review-tag {
+      display: inline-block;
+      background-color: rgba(253, 184, 19, 0.25);
+      color: var(--sun-gold);
+      border: 1px dashed var(--sun-gold);
+      font-size: 0.75rem;
+      padding: 2px 6px;
+      border-radius: 6px;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+
+    /* --------------------------------------------------------------------------
+       Touch Targets & Buttons (≥ 48x48pt with 16px rounded corners)
+       -------------------------------------------------------------------------- */
+    .btn-touch {
+      min-height: var(--touch-target);
+      min-width: var(--touch-target);
+      padding: 10px 20px;
+      border-radius: var(--border-radius-btn);
+      border: none;
+      font-size: 1.125rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-align: center;
+      transition: transform 0.15s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+      user-select: none;
+    }
+
+    .btn-touch:active {
+      transform: scale(0.96);
+    }
+
+    .btn-primary {
+      background-color: var(--accent-teal);
+      color: #05231C;
+      box-shadow: 0 4px 14px var(--accent-teal-glow);
+    }
+
+    .btn-primary:hover {
+      background-color: #5ce3b7;
+    }
+
+    .btn-secondary {
+      background-color: var(--bg-panel-light);
+      color: var(--text-primary);
+      border: 1.5px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-secondary:hover {
+      background-color: #273b75;
+    }
+
+    .btn-small {
+      padding: 6px 14px;
+      font-size: 0.95rem;
+      min-height: 44px;
+      background-color: var(--bg-panel-light);
+      color: var(--text-primary);
+    }
+
+    .btn-icon-only {
+      width: var(--touch-target);
+      height: var(--touch-target);
+      padding: 0;
+      border-radius: 50%;
+    }
+
+    /* --------------------------------------------------------------------------
+       Header & Tabs
+       -------------------------------------------------------------------------- */
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background-color: rgba(11, 19, 43, 0.95);
+      border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(8px);
+    }
+
+    .brand-zone {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .mascot-avatar {
+      font-size: 2rem;
+      animation: floatMascot 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes floatMascot {
+      0% { transform: translateY(0) rotate(0deg); }
+      100% { transform: translateY(-4px) rotate(4deg); }
+    }
+
+    .app-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--sun-gold);
+      letter-spacing: 0.5px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Navigation Tabs */
+    .nav-tabs {
+      display: flex;
+      background-color: var(--bg-panel);
+      padding: 6px 10px;
+      gap: 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-tab {
+      flex: 1;
+      min-height: 44px;
+      background: transparent;
+      border: none;
+      border-radius: 12px;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      padding: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .nav-tab.active {
+      background-color: var(--bg-panel-light);
+      color: var(--sun-gold);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    /* --------------------------------------------------------------------------
+       Screens & Layouts
+       -------------------------------------------------------------------------- */
+    .main-content {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 16px 14px 40px;
+    }
+
+    .screen-view {
+      display: none;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    .screen-view.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* --------------------------------------------------------------------------
+       Screen 1: Home
+       -------------------------------------------------------------------------- */
+    .hero-card {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .mascot-hero-bubble {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: linear-gradient(135deg, var(--bg-panel) 0%, #1d2c54 100%);
+      padding: 16px;
+      border-radius: var(--border-radius-card);
+      border: 2px solid rgba(253, 184, 19, 0.3);
+    }
+
+    .luna-character .mascot-graphic {
+      font-size: 3.5rem;
+      display: block;
+      animation: waveCat 1.8s ease-in-out infinite alternate;
+    }
+
+    @keyframes waveCat {
+      0% { transform: rotate(0deg) scale(1); }
+      100% { transform: rotate(10deg) scale(1.05); }
+    }
+
+    .speech-bubble {
+      flex: 1;
+      background-color: rgba(255, 255, 255, 0.08);
+      padding: 12px 14px;
+      border-radius: 14px;
+      font-size: 1rem;
+      line-height: 1.4;
+      color: #F0F4FF;
+    }
+
+    .hero-heading {
+      font-size: 1.7rem;
+      font-weight: 800;
+      color: var(--moon-white);
+      line-height: 1.25;
+    }
+
+    .hero-subtitle {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+    }
+
+    .memory-trick-box {
+      background: linear-gradient(135deg, rgba(253, 184, 19, 0.15) 0%, rgba(78, 204, 163, 0.15) 100%);
+      border-left: 5px solid var(--sun-gold);
+      padding: 14px;
+      border-radius: 12px;
+    }
+
+    .memory-trick-box .badge-title {
+      color: var(--sun-gold);
+      font-weight: 800;
+      margin-bottom: 4px;
+      font-size: 0.95rem;
+    }
+
+    .memory-trick-text {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+
+    .home-action-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 6px;
+    }
+
+    .action-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 18px;
+      border-radius: var(--border-radius-card);
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      background: var(--bg-panel);
+      color: var(--text-primary);
+      text-align: left;
+      cursor: pointer;
+      transition: transform 0.18s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .action-card:hover, .action-card:focus {
+      transform: translateY(-2px);
+      border-color: var(--accent-teal);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    }
+
+    .card-icon {
+      font-size: 2.5rem;
+    }
+
+    .card-info h3 {
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+      color: var(--moon-white);
+    }
+
+    .card-info p {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .card-arrow {
+      margin-left: auto;
+      font-size: 1.5rem;
+      color: var(--sun-gold);
+    }
+
+    .misconception-callout {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background-color: rgba(78, 204, 163, 0.1);
+      border: 1px solid rgba(78, 204, 163, 0.3);
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      color: #D2F5E9;
+    }
+
+    .callout-icon {
+      font-size: 1.4rem;
+    }
+
+    /* --------------------------------------------------------------------------
+       Screen 2: Orbit Explorer (Dual-View Screen)
+       -------------------------------------------------------------------------- */
+    .explorer-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .view-panel {
+      background: var(--bg-panel);
+      border-radius: var(--border-radius-card);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      padding: 16px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .panel-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--moon-white);
+    }
+
+    .sunlight-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background-color: rgba(253, 184, 19, 0.15);
+      border: 1px solid var(--sun-gold);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--sun-gold);
+    }
+
+    /* Space Orbit Stage */
+    .orbit-stage {
+      position: relative;
+      width: 100%;
+      max-width: 320px;
+      height: 320px;
+      margin: 0 auto 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: none;
+    }
+
+    .orbit-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .orbit-line {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.22);
+      stroke-dasharray: 6 6;
+      stroke-width: 2;
+    }
+
+    .phase-anchor {
+      fill: var(--text-muted);
+      opacity: 0.6;
+      transition: r 0.2s, fill 0.2s;
+    }
+
+    .phase-anchor.active {
+      fill: var(--sun-gold);
+      r: 7;
+      opacity: 1;
+    }
+
+    /* Center Earth */
+    .space-earth {
+      position: absolute;
+      width: 68px;
+      height: 68px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .body-emoji {
+      font-size: 2.5rem;
+      filter: drop-shadow(0 0 10px rgba(78, 204, 163, 0.5));
+    }
+
+    .body-label {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: #A5D8FF;
+    }
+
+    /* Fixed Sun on Right */
+    .sun-source {
+      position: absolute;
+      right: -8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      pointer-events: none;
+      z-index: 6;
+    }
+
+    .sun-disk {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #FFF685 0%, #FDB813 60%, #E67E22 100%);
+      box-shadow: 0 0 25px 6px var(--sun-glow);
+      animation: pulseSun 2s infinite alternate;
+    }
+
+    @keyframes pulseSun {
+      0% { transform: scale(1); filter: brightness(1); }
+      100% { transform: scale(1.08); filter: brightness(1.2); }
+    }
+
+    .sun-tag {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--sun-gold);
+      margin-top: 2px;
+    }
+
+    /* Orbiting Moon Object */
+    .space-moon {
+      position: absolute;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      cursor: grab;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transform: translate(-50%, -50%);
+      touch-action: none;
+    }
+
+    .space-moon:active {
+      cursor: grabbing;
+    }
+
+    .moon-body {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background-color: var(--moon-dark);
+      border: 2px solid #576574;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+    }
+
+    /* In space view, the right half facing the Sun is ALWAYS illuminated */
+    .moon-lit-half {
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 50%;
+      height: 100%;
+      background-color: var(--moon-white);
+      box-shadow: -2px 0 6px rgba(255, 255, 255, 0.4);
+    }
+
+    .moon-drag-hint {
+      position: absolute;
+      bottom: -18px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--sun-gold);
+      background: rgba(11, 19, 43, 0.85);
+      padding: 1px 6px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    /* Slider Bar for Accessible Control */
+    .slider-control-bar {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 10px;
+      border-radius: 5px;
+      background: var(--bg-panel-light);
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--sun-gold);
+      cursor: pointer;
+      box-shadow: 0 0 8px var(--sun-glow);
+    }
+
+    .slider-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .slider-actions .btn-touch {
+      flex: 1;
+    }
+
+    /* Earth Telescope Lens Panel */
+    .telescope-display {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    @media (min-width: 580px) {
+      .telescope-display {
+        flex-direction: row;
+        align-items: center;
+        gap: 24px;
+      }
+    }
+
+    .lens-frame {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      min-width: 140px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #050c1e 40%, #030713 100%);
+      border: 6px solid #33446b;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8), 0 4px 16px rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .crosshairs {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background:
+        linear-gradient(to right, transparent 49.5%, rgba(78, 204, 163, 0.3) 50%, transparent 50.5%),
+        linear-gradient(to bottom, transparent 49.5%, rgba(78, 204, 163, 0.3) 50%, transparent 50.5%);
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    .telescope-moon {
+      position: relative;
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background-color: var(--moon-dark);
+      box-shadow: 0 0 16px rgba(0, 0, 0, 0.8);
+      overflow: hidden;
+    }
+
+    /* Geometric dynamic moon shading (Earth View) */
+    .moon-illumination {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background-color: var(--moon-white);
+      box-shadow: 0 0 14px rgba(244, 244, 246, 0.5);
+      transition: clip-path 0.05s linear;
+    }
+
+    .phase-info-box {
+      flex: 1;
+      text-align: center;
+    }
+
+    @media (min-width: 580px) {
+      .phase-info-box {
+        text-align: left;
+      }
+    }
+
+    .phase-index {
+      display: inline-block;
+      background-color: rgba(255, 255, 255, 0.1);
+      color: var(--sun-gold);
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 8px;
+      margin-bottom: 6px;
+    }
+
+    .phase-name {
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .phase-feature {
+      color: var(--accent-teal);
+      font-weight: 700;
+      font-size: 1.05rem;
+      margin-bottom: 6px;
+    }
+
+    .phase-explain {
+      font-size: 1rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .explorer-footer {
+      margin-top: 14px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .explorer-footer .btn-primary {
+      width: 100%;
+      max-width: 360px;
+    }
+
+    /* --------------------------------------------------------------------------
+       Screen 3: Challenge Mode (Quiz)
+       -------------------------------------------------------------------------- */
+    .quiz-container {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .quiz-hud {
+      background: var(--bg-panel);
+      padding: 12px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .quiz-hud-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .quiz-badge {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--sun-gold);
+      background: rgba(253, 184, 19, 0.15);
+      padding: 3px 10px;
+      border-radius: 12px;
+    }
+
+    .quiz-progress-text {
+      font-weight: 800;
+      font-size: 1rem;
+      color: var(--moon-white);
+    }
+
+    .progress-bar-track {
+      width: 100%;
+      height: 10px;
+      background-color: var(--bg-panel-light);
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(to right, var(--sun-gold), var(--accent-teal));
+      border-radius: 5px;
+      transition: width 0.3s ease;
+    }
+
+    .quiz-card {
+      background: var(--bg-panel);
+      border-radius: var(--border-radius-card);
+      padding: 20px 16px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .quiz-prompt {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .mascot-mini {
+      font-size: 2.2rem;
+    }
+
+    .quiz-question-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--moon-white);
+    }
+
+    /* Quiz Sub-Games Layout */
+    .quiz-interactive-area {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Game 1: 3 Visual Cards */
+    .visual-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .visual-card-btn {
+      background: var(--bg-panel-light);
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      padding: 14px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      min-height: 110px;
+      transition: transform 0.15s, border-color 0.2s;
+    }
+
+    .visual-card-btn:hover {
+      transform: translateY(-2px);
+      border-color: var(--sun-gold);
+    }
+
+    .visual-card-btn.correct {
+      border-color: var(--accent-teal);
+      background-color: rgba(78, 204, 163, 0.2);
+    }
+
+    .visual-card-btn.wrong {
+      border-color: var(--danger-red);
+      background-color: rgba(255, 107, 107, 0.2);
+    }
+
+    /* Mini visual moon renderer inside quiz cards */
+    .quiz-mini-moon {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: var(--moon-dark);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .quiz-mini-moon .moon-illumination {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: var(--moon-white);
+    }
+
+    .card-opt-tag {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    /* Game 2: Sky Display + 3 Text Buttons */
+    .sky-moon-display {
+      background: radial-gradient(circle at center, #1b284e 0%, #060b18 100%);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      min-height: 130px;
+    }
+
+    .sky-moon-large {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: var(--moon-dark);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.25);
+    }
+
+    .name-options-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .name-opt-btn {
+      width: 100%;
+      text-align: left;
+      justify-content: flex-start;
+      padding: 12px 18px;
+      border-radius: 14px;
+      background-color: var(--bg-panel-light);
+      color: var(--text-primary);
+      font-size: 1.1rem;
+      font-weight: 700;
+      border: 2px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .name-opt-btn.correct {
+      border-color: var(--accent-teal);
+      background-color: rgba(78, 204, 163, 0.25);
+    }
+
+    .name-opt-btn.wrong {
+      border-color: var(--danger-red);
+      background-color: rgba(255, 107, 107, 0.25);
+    }
+
+    /* Game 3: Orbit Slotting */
+    .orbit-slot-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .orbit-slot-diagram {
+      position: relative;
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, #101c38 0%, #080d1e 100%);
+      border-radius: 50%;
+      border: 2px dashed rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .slot-sun-arrow {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      font-size: 0.85rem;
+      color: var(--sun-gold);
+      font-weight: 700;
+    }
+
+    .slot-fixed-moon {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--sun-gold);
+      border: 3px solid #FFFFFF;
+      box-shadow: 0 0 12px var(--sun-gold);
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+    }
+
+    .slot-options-row {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      justify-content: center;
+    }
+
+    /* Feedback Banner */
+    .quiz-feedback-banner {
+      background: #18284d;
+      border-radius: 14px;
+      padding: 14px 16px;
+      border-left: 6px solid var(--accent-teal);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .quiz-feedback-banner.wrong {
+      border-left-color: var(--danger-red);
+    }
+
+    .feedback-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .feedback-icon {
+      font-size: 2rem;
+    }
+
+    .feedback-message {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Certificate Modal */
+    .quiz-result-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(11, 19, 43, 0.88);
+      backdrop-filter: blur(8px);
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .result-card {
+      background: linear-gradient(135deg, var(--bg-panel) 0%, #172852 100%);
+      border: 3px solid var(--sun-gold);
+      border-radius: 24px;
+      padding: 24px 20px;
+      max-width: 440px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .result-confetti {
+      font-size: 1.8rem;
+    }
+
+    .result-heading {
+      font-size: 1.55rem;
+      font-weight: 900;
+      color: var(--sun-gold);
+    }
+
+    .star-rating {
+      font-size: 2.2rem;
+      letter-spacing: 4px;
+    }
+
+    .badge-icon-wrap {
+      position: relative;
+      width: 90px;
+      height: 90px;
+      background: radial-gradient(circle, #ffeaa7 0%, var(--sun-gold) 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px var(--sun-glow);
+    }
+
+    .badge-emblem .badge-cat {
+      font-size: 2.8rem;
+    }
+
+    .result-score-line {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--moon-white);
+    }
+
+    .result-subtext {
+      font-size: 1rem;
+      color: var(--text-muted);
+    }
+
+    .result-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      margin-top: 6px;
+    }
+
+    /* Footer Footnote */
+    .app-footer {
+      text-align: center;
+      padding: 20px 14px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .footer-note {
+      display: block;
+      margin-top: 4px;
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header / Navigation Bar -->
+  <header class="app-header" role="banner">
+    <div class="brand-zone">
+      <span class="mascot-avatar" aria-hidden="true">🐱‍🚀</span>
+      <h1 class="app-title" id="appTitle">Lunar Quest</h1>
+    </div>
+    <div class="header-actions">
+      <button id="langToggleBtn" class="btn-touch btn-secondary" aria-label="Toggle language: English or Chinese">
+        <span aria-hidden="true">🌐</span> <span id="langBtnText">中文</span>
+      </button>
+      <button id="audioToggleBtn" class="btn-touch btn-secondary" aria-label="Toggle sound and voice narration">
+        <span id="audioIcon" aria-hidden="true">🔊</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Global Screen Navigation -->
+  <nav class="nav-tabs" aria-label="Mode Navigation">
+    <button id="tabHome" class="nav-tab active" data-screen="screen-home">
+      <span class="tab-icon" aria-hidden="true">🚀</span>
+      <span class="tab-text" data-i18n="navHome">Home</span>
+    </button>
+    <button id="tabExplorer" class="nav-tab" data-screen="screen-explorer">
+      <span class="tab-icon" aria-hidden="true">🔭</span>
+      <span class="tab-text" data-i18n="navExplorer">Orbit Explorer</span>
+    </button>
+    <button id="tabChallenge" class="nav-tab" data-screen="screen-challenge">
+      <span class="tab-icon" aria-hidden="true">🏆</span>
+      <span class="tab-text" data-i18n="navChallenge">Moon Matcher</span>
+    </button>
+  </nav>
+
+  <!-- Main Content Container -->
+  <main class="main-content" role="main">
+
+    <!-- Screen 1: Home / Start Screen -->
+    <section id="screen-home" class="screen-view active" aria-labelledby="homeTitle">
+      <div class="hero-card">
+        <div class="mascot-hero-bubble">
+          <div class="luna-character" aria-label="Luna the Astronaut Cat waving" role="img">
+            <span class="mascot-graphic">🐱‍🚀</span>
+          </div>
+          <div class="speech-bubble">
+            <p id="lunaWelcomeText" data-i18n="lunaWelcome">
+              Hi! I'm Luna the Astronaut Cat! Earth's shadow does not cause moon phases—sunlight does! Ready to explore?
+            </p>
+          </div>
+        </div>
+
+        <h2 id="homeTitle" class="hero-heading" data-i18n="heroHeading">Explore the 8 Moon Phases</h2>
+        <p class="hero-subtitle" data-i18n="heroSubtitle">
+          See the Moon travel around Earth and watch how it looks from your backyard telescope!
+        </p>
+
+        <!-- Memory Trick Box from PRD -->
+        <aside class="memory-trick-box" aria-label="Memory Trick Box">
+          <div class="badge-title" data-i18n="memoryTrickTitle">⭐ Kid's Memory Trick</div>
+          <p id="memoryTrickText" class="memory-trick-text" data-i18n="memoryTrickBody">
+            "Light on the Right = Growing Bright (Waxing); Left alone = Waning Moon."
+          </p>
+        </aside>
+
+        <!-- Mode Entry Cards -->
+        <div class="home-action-grid">
+          <button id="btnStartExplorer" class="action-card card-explorer">
+            <div class="card-icon" aria-hidden="true">🪐</div>
+            <div class="card-info">
+              <h3 data-i18n="modeExplorerTitle">Orbit Explorer</h3>
+              <p data-i18n="modeExplorerDesc">Drag the Moon around its orbit and watch telescope view change!</p>
+            </div>
+            <span class="card-arrow" aria-hidden="true">➔</span>
+          </button>
+
+          <button id="btnStartChallenge" class="action-card card-challenge">
+            <div class="card-icon" aria-hidden="true">🎯</div>
+            <div class="card-info">
+              <h3 data-i18n="modeChallengeTitle">Moon Matcher Quiz</h3>
+              <p data-i18n="modeChallengeDesc">Take the 5-question test and earn your Junior Astronomer Badge!</p>
+            </div>
+            <span class="card-arrow" aria-hidden="true">➔</span>
+          </button>
+        </div>
+
+        <!-- Misconception Clarifier Badge -->
+        <div class="misconception-callout">
+          <span class="callout-icon" aria-hidden="true">💡</span>
+          <p data-i18n="misconceptionTip">
+            Remember: Moon phases come from sunlight hitting the Moon as it orbits Earth, NOT from Earth's shadow!
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screen 2: Orbit Explorer Mode -->
+    <section id="screen-explorer" class="screen-view" aria-labelledby="explorerTitle">
+      <div class="explorer-container">
+        
+        <!-- Top Half: Space View -->
+        <div class="view-panel space-panel">
+          <div class="panel-header">
+            <h2 id="explorerTitle" class="panel-title">
+              <span aria-hidden="true">🌌</span> <span data-i18n="spaceViewTitle">Space View (Top-Down)</span>
+            </h2>
+            <div class="sunlight-indicator" aria-label="Sunlight shines from the right side">
+              <span class="sun-text" data-i18n="sunlightLabel">Sunlight</span>
+              <span class="sun-arrows" aria-hidden="true">☀️ ◀ ◀ ◀</span>
+            </div>
+          </div>
+
+          <!-- Space Canvas Interactive Area -->
+          <div class="orbit-stage" id="orbitStage" role="region" aria-label="Interactive moon orbit track. Drag the moon around Earth.">
+            <!-- Central Earth -->
+            <div class="space-earth" aria-label="Earth stationary in the center">
+              <span class="body-emoji" aria-hidden="true">🌍</span>
+              <span class="body-label" data-i18n="earthLabel">Earth</span>
+            </div>
+
+            <!-- Orbit Track SVG -->
+            <svg class="orbit-svg" viewBox="0 0 300 300" aria-hidden="true">
+              <circle cx="150" cy="150" r="105" class="orbit-line"></circle>
+              <!-- 8 Canonical Snapping Anchor Dots -->
+              <circle cx="255" cy="150" r="4" class="phase-anchor" data-deg="0"></circle>
+              <circle cx="224" cy="76"  r="4" class="phase-anchor" data-deg="45"></circle>
+              <circle cx="150" cy="45"  r="4" class="phase-anchor" data-deg="90"></circle>
+              <circle cx="76"  cy="76"  r="4" class="phase-anchor" data-deg="135"></circle>
+              <circle cx="45"  cy="150" r="4" class="phase-anchor" data-deg="180"></circle>
+              <circle cx="76"  cy="224" r="4" class="phase-anchor" data-deg="225"></circle>
+              <circle cx="150" cy="255" r="4" class="phase-anchor" data-deg="270"></circle>
+              <circle cx="224" cy="224" r="4" class="phase-anchor" data-deg="315"></circle>
+            </svg>
+
+            <!-- Draggable Moon -->
+            <div id="orbitMoon" class="space-moon" role="slider" aria-valuemin="0" aria-valuemax="360" aria-valuenow="0" aria-label="Moon on orbit. Drag with touch or use slider." tabindex="0">
+              <div class="moon-body">
+                <div class="moon-lit-half" id="moonSpaceLitHalf"></div>
+              </div>
+              <span class="moon-drag-hint" data-i18n="dragHint">Drag!</span>
+            </div>
+
+            <!-- Fixed Sun Source on the Right -->
+            <div class="sun-source" aria-label="Fixed Sun on the right side">
+              <div class="sun-disk" aria-hidden="true"></div>
+              <span class="sun-tag" data-i18n="sunTag">Sun</span>
+            </div>
+          </div>
+
+          <!-- Quick Orbit Controls for Accessible Touch / Slider -->
+          <div class="slider-control-bar">
+            <label for="orbitAngleSlider" class="sr-only" data-i18n="sliderLabel">Orbit Angle Slider</label>
+            <input type="range" id="orbitAngleSlider" min="0" max="359" value="0" step="1" aria-label="Moon Orbit Angle">
+            <div class="slider-actions">
+              <button id="btnPrevPhase" class="btn-touch btn-small" aria-label="Previous Phase">◀ <span data-i18n="prevPhase">Prev</span></button>
+              <button id="btnSnapPhase" class="btn-touch btn-small" aria-label="Auto align to nearest phase">🧲 <span data-i18n="snapNearest">Snap</span></button>
+              <button id="btnNextPhase" class="btn-touch btn-small" aria-label="Next Phase"><span data-i18n="nextPhase">Next</span> ▶</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Half: Earth Telescope View -->
+        <div class="view-panel earth-panel">
+          <div class="panel-header">
+            <h2 class="panel-title">
+              <span aria-hidden="true">🔭</span> <span data-i18n="earthViewTitle">Earth View (Telescope)</span>
+            </h2>
+            <button id="btnSpeakPhase" class="btn-touch btn-secondary btn-icon-only" aria-label="Read phase name and explanation aloud">
+              <span aria-hidden="true">🗣️</span>
+            </button>
+          </div>
+
+          <div class="telescope-display">
+            <!-- Simulated Telescope Lens Ring -->
+            <div class="lens-frame" aria-label="Telescope crosshair lens showing moon shape from Earth">
+              <div class="crosshairs" aria-hidden="true"></div>
+              <!-- Real-time dynamic moon silhouette rendered via CSS/JS -->
+              <div class="telescope-moon" id="telescopeMoon" role="img" aria-label="Earth View Moon Shape">
+                <div class="moon-illumination" id="moonIllumination"></div>
+              </div>
+            </div>
+
+            <!-- Real-time Phase Detail Card -->
+            <div class="phase-info-box" id="phaseInfoBox">
+              <div class="phase-index" id="phaseIndexTag">Phase 1 of 8</div>
+              <h3 class="phase-name" id="phaseName">New Moon</h3>
+              <p class="phase-feature" id="phaseFeature">Completely dark, invisible</p>
+              <p class="phase-explain" id="phaseExplanation">
+                <!-- Kid-friendly 1-sentence popup tagged for review -->
+                <span class="review-tag" title="Kid explanation based on PRD spatial criteria">[REVIEW: KID-FACT]</span>
+                <span id="phaseExplainText">The Moon is between Earth and Sun, so the lighted side faces away from us!</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- Bottom Prompt to Quiz -->
+          <div class="explorer-footer">
+            <button id="btnGoQuizFromExplorer" class="btn-touch btn-primary">
+              <span data-i18n="readyForQuiz">Ready for the Quiz? / 准备好挑战了吗？</span> ➔
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Screen 3: Challenge Mode / Moon Matcher Quiz -->
+    <section id="screen-challenge" class="screen-view" aria-labelledby="challengeTitle">
+      <div class="quiz-container">
+        
+        <!-- Quiz HUD -->
+        <header class="quiz-hud">
+          <div class="quiz-hud-top">
+            <span class="quiz-badge" id="quizModeBadge">Spot the Phase</span>
+            <div class="quiz-progress-text" id="quizProgressText" aria-live="polite">Question 1/5</div>
+          </div>
+          <div class="progress-bar-track" role="progressbar" aria-valuenow="1" aria-valuemin="1" aria-valuemax="5">
+            <div class="progress-bar-fill" id="quizProgressBar" style="width: 20%;"></div>
+          </div>
+        </header>
+
+        <!-- Question Body Card -->
+        <article class="quiz-card" id="quizCard">
+          <div class="quiz-prompt">
+            <span class="mascot-mini" aria-hidden="true">🐱‍🚀</span>
+            <h2 id="challengeTitle" class="quiz-question-title">Loading Question...</h2>
+          </div>
+
+          <!-- Sub-Mode Dynamic Container -->
+          <div id="quizInteractiveArea" class="quiz-interactive-area">
+            <!-- Dynamic elements will be injected here: Game 1 (3 visual cards), Game 2 (Sky + 3 buttons), Game 3 (Orbit slotting) -->
+          </div>
+
+          <!-- Feedback notification banner -->
+          <div id="quizFeedback" class="quiz-feedback-banner hidden" aria-live="assertive">
+            <div class="feedback-content">
+              <span id="feedbackIcon" class="feedback-icon" aria-hidden="true">🎉</span>
+              <p id="feedbackText" class="feedback-message">Great Job!</p>
+            </div>
+            <button id="btnNextQuestion" class="btn-touch btn-primary" data-i18n="nextQuestion">Next Question ➔</button>
+          </div>
+        </article>
+
+        <!-- Completion Modal / Certificate -->
+        <div id="quizResultModal" class="quiz-result-modal hidden" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+          <div class="result-card">
+            <div class="result-confetti" aria-hidden="true">✨ 🌕 🌟</div>
+            <h2 id="resultTitle" class="result-heading" data-i18n="resultBadgeTitle">Junior Astronomer Certificate</h2>
+            
+            <div class="star-rating" id="resultStars" aria-label="3 out of 3 stars">
+              ⭐⭐⭐
+            </div>
+
+            <div class="badge-icon-wrap" role="img" aria-label="Badge with Luna the cat and a full moon">
+              <div class="badge-emblem">
+                <span class="badge-cat">🐱‍🚀</span>
+              </div>
+            </div>
+
+            <p class="result-score-line" id="resultScoreText">You scored 5 out of 5!</p>
+            <p class="result-subtext" id="resultSubtext" data-i18n="resultEncouragement">
+              Awesome work! You know the Moon gets its light from the Sun!
+            </p>
+
+            <div class="result-actions">
+              <button id="btnRetryQuiz" class="btn-touch btn-primary" data-i18n="playAgain">Play Again / 再玩一次</button>
+              <button id="btnBackToExplorer" class="btn-touch btn-secondary" data-i18n="backToExplorer">Back to Explorer / 返回探索</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Missing Facts & PRD Compliance Footer Footnote -->
+  <footer class="app-footer">
+    <p>
+      Lunar Quest • Grade 3–4 (Age 9) Learning Game • 
+      <span class="footer-note">Built from PRD. <span class="review-tag">[REVIEW: MISSING FACT IN PRD]</span> Kid-friendly 1-sentence explanations & Web Audio synthesis marked for review.</span>
+    </p>
+  </footer>
+
+  <script>
+    /**
+     * Lunar Quest / 月相大冒险
+     * Vanilla JavaScript Implementation
+     * Meets PRD Requirements: Lexile 500L-700L for 9yo, 8 Canonical Phases, Dual View, 3 Quiz Games,
+     * Bilingual Toggle, Magnetic ±10° Snap, Web Speech API & Web Audio Synthesis.
+     */
+
+    // ==========================================================================
+    // 1. DATA DICTIONARIES & PHASES
+    // ==========================================================================
+    const MOON_PHASES = [
+      {
+        index: 1,
+        angle: 0, // Facing Sun on the right
+        name: {
+          en: "New Moon",
+          cn: "新月（朔）"
+        },
+        feature: {
+          en: "Completely dark, invisible",
+          cn: "全黑，不可见"
+        },
+        explain: {
+          en: "The Moon is between Earth and the Sun, so its lit side faces away from us!",
+          cn: "月球正好在地球和太阳中间，它被照亮的那面背对着我们，所以看不见！"
+        },
+        illumination: "new"
+      },
+      {
+        index: 2,
+        angle: 45,
+        name: {
+          en: "Waxing Crescent",
+          cn: "娥眉月"
+        },
+        feature: {
+          en: "Growing sliver on the right side",
+          cn: "右侧露出一弯细细的月牙"
+        },
+        explain: {
+          en: "The Moon is moving along its orbit, showing a thin sunny smile on the right!",
+          cn: "月球在公转轨道上悄悄移动，右侧露出了一弯像微笑一样的细细月牙！"
+        },
+        illumination: "waxing-crescent"
+      },
+      {
+        index: 3,
+        angle: 90,
+        name: {
+          en: "First Quarter",
+          cn: "上弦月"
+        },
+        feature: {
+          en: "Half-lit on the right side",
+          cn: "右半边亮，呈半圆形"
+        },
+        explain: {
+          en: "We can now see exactly half of the Moon's lit side on the right!",
+          cn: "我们刚好可以看到月球右半边被太阳照亮，就像半个发光的西瓜！"
+        },
+        illumination: "first-quarter"
+      },
+      {
+        index: 4,
+        angle: 135,
+        name: {
+          en: "Waxing Gibbous",
+          cn: "盈凸月"
+        },
+        feature: {
+          en: "More than half-lit on the right side",
+          cn: "大部分变亮，亮面在右侧继续变大"
+        },
+        explain: {
+          en: "Most of the Moon is glowing bright now, heading towards full!",
+          cn: "大部分月面都已经照亮啦，而且亮面还在继续变大，快要变圆啦！"
+        },
+        illumination: "waxing-gibbous"
+      },
+      {
+        index: 5,
+        angle: 180,
+        name: {
+          en: "Full Moon",
+          cn: "满月（望）"
+        },
+        feature: {
+          en: "Completely illuminated round disk",
+          cn: "整个圆盘完全照亮，晶莹明亮"
+        },
+        explain: {
+          en: "Earth is in the middle, and we see the Moon's entire sunlit face!",
+          cn: "地球在太阳与月球之间，我们可以看到整面被阳光照得金灿灿的圆盘！"
+        },
+        illumination: "full"
+      },
+      {
+        index: 6,
+        angle: 225,
+        name: {
+          en: "Waning Gibbous",
+          cn: "亏凸月"
+        },
+        feature: {
+          en: "More than half-lit, shrinking from right",
+          cn: "亮面开始缩小，左侧依然饱满"
+        },
+        explain: {
+          en: "The lit part is now shrinking away from the right side!",
+          cn: "月亮开始慢慢变小啦，右边的光芒渐渐褪去，左边依然圆润！"
+        },
+        illumination: "waning-gibbous"
+      },
+      {
+        index: 7,
+        angle: 270,
+        name: {
+          en: "Third / Last Quarter",
+          cn: "下弦月"
+        },
+        feature: {
+          en: "Half-lit on the left side",
+          cn: "左半边亮，呈半圆形"
+        },
+        explain: {
+          en: "Now only the left half is lit as the Moon heads toward home!",
+          cn: "现在只剩下左半边在发亮，月亮正在绕着地球回家的路上！"
+        },
+        illumination: "third-quarter"
+      },
+      {
+        index: 8,
+        angle: 315,
+        name: {
+          en: "Waning Crescent",
+          cn: "残月"
+        },
+        feature: {
+          en: "Thin sliver shrinking on the left side",
+          cn: "只剩左侧一弯纤细月牙，即将重回新月"
+        },
+        explain: {
+          en: "Just a gentle silver hook left on the left, ready to start anew!",
+          cn: "只剩左边最后一抹细细银钩，月亮公转一圈马上又要迎来新月啦！"
+        },
+        illumination: "waning-crescent"
+      }
+    ];
+
+    const UI_TEXTS = {
+      en: {
+        appTitle: "Lunar Quest",
+        langBtn: "中文",
+        navHome: "Home",
+        navExplorer: "Orbit Explorer",
+        navChallenge: "Moon Matcher",
+        heroHeading: "Explore the 8 Moon Phases",
+        heroSubtitle: "See the Moon travel around Earth and watch how it looks from your backyard telescope!",
+        lunaWelcome: "Hi! I'm Luna the Astronaut Cat! Earth's shadow does not cause moon phases—sunlight does! Ready to explore?",
+        memoryTrickTitle: "⭐ Kid's Memory Trick",
+        memoryTrickBody: '"Light on the Right = Growing Bright (Waxing); Left alone = Waning Moon."',
+        modeExplorerTitle: "Orbit Explorer",
+        modeExplorerDesc: "Drag the Moon around its orbit and watch telescope view change!",
+        modeChallengeTitle: "Moon Matcher Quiz",
+        modeChallengeDesc: "Take the 5-question test and earn your Junior Astronomer Badge!",
+        misconceptionTip: "Remember: Moon phases come from sunlight hitting the Moon as it orbits Earth, NOT from Earth's shadow!",
+        spaceViewTitle: "Space View (Top-Down)",
+        sunlightLabel: "Sunlight",
+        earthLabel: "Earth",
+        sunTag: "Sun",
+        dragHint: "Drag!",
+        sliderLabel: "Orbit Angle Slider",
+        prevPhase: "Prev",
+        snapNearest: "Snap",
+        nextPhase: "Next",
+        earthViewTitle: "Earth View (Telescope)",
+        phaseTagPrefix: "Phase ",
+        phaseTagOf: " of 8",
+        readyForQuiz: "Ready for the Quiz? ➔",
+        spotPhaseBadge: "Spot the Phase",
+        nameMoonBadge: "Name the Moon",
+        orbitSlotBadge: "Orbit Slotting",
+        questionPrefix: "Question ",
+        nextQuestion: "Next Question ➔",
+        resultBadgeTitle: "Junior Astronomer Certificate",
+        resultEncouragement: "Awesome work! You know the Moon gets its light from the Sun!",
+        playAgain: "Play Again",
+        backToExplorer: "Back to Explorer"
+      },
+      cn: {
+        appTitle: "月相大冒险",
+        langBtn: "EN",
+        navHome: "首页",
+        navExplorer: "轨道探索",
+        navChallenge: "月相挑战",
+        heroHeading: "探索 8 大主要月相",
+        heroSubtitle: "拖动月球在太空中公转，同步观察地面望远镜里的月相变化！",
+        lunaWelcome: "嗨！我是宇航猫露娜！记住哦：月相不是地球影子挡住的，而是阳光照亮的！一起来探索吧！",
+        memoryTrickTitle: "⭐ 巧记口诀",
+        memoryTrickBody: "“上西天，下东沉” / “右亮渐圆（上弦渐盈），左亮渐缺（下弦渐亏）”",
+        modeExplorerTitle: "轨道探索器",
+        modeExplorerDesc: "在轨道上拖动月球，实时观察地表望远镜中的月形同步形变！",
+        modeChallengeTitle: "月相闯关答题",
+        modeChallengeDesc: "完成 5 道趣味挑战，评定星级并赢取“小小天文家”荣誉勋章！",
+        misconceptionTip: "核心知识：月相是月球公转时受太阳光照角度不同产生的，与地球影子无关！",
+        spaceViewTitle: "太空俯视图（上帝视角）",
+        sunlightLabel: "太阳光线",
+        earthLabel: "地球",
+        sunTag: "太阳",
+        dragHint: "拖动我！",
+        sliderLabel: "轨道角度滑块",
+        prevPhase: "上一个",
+        snapNearest: "磁吸吸附",
+        nextPhase: "下一个",
+        earthViewTitle: "地表视角（仿真望远镜）",
+        phaseTagPrefix: "第 ",
+        phaseTagOf: " / 8 个月相",
+        readyForQuiz: "准备好挑战了吗？ ➔",
+        spotPhaseBadge: "找一找",
+        nameMoonBadge: "猜一猜",
+        orbitSlotBadge: "填一填",
+        questionPrefix: "第 ",
+        nextQuestion: "下一题 ➔",
+        resultBadgeTitle: "小小天文家荣誉证书",
+        resultEncouragement: "太棒了！你已经完全掌握了月相形成的空间原理！",
+        playAgain: "再玩一次",
+        backToExplorer: "返回探索模式"
+      }
+    };
+
+    // ==========================================================================
+    // 2. STATE MANAGEMENT
+    // ==========================================================================
+    const state = {
+      currentLang: "en",
+      soundEnabled: true,
+      currentAngle: 0,
+      activePhaseIndex: 1,
+      isDragging: false,
+      quizSession: {
+        active: false,
+        currentIndex: 0,
+        score: 0,
+        questions: []
+      }
+    };
+
+    // ==========================================================================
+    // 3. AUDIO SYNTHESIS (Zero-Dependency Web Audio API + Speech API)
+    // ==========================================================================
+    let audioCtx = null;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) {
+          audioCtx = new AudioContext();
+        }
+      }
+      if (audioCtx && audioCtx.state === "suspended") {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playTone(type) {
+      if (!state.soundEnabled) return;
+      try {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        const now = ctx.currentTime;
+        if (type === "snap") {
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(587.33, now);
+          osc.frequency.exponentialRampToValueAtTime(880, now + 0.12);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        } else if (type === "correct") {
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(523.25, now);
+          osc.frequency.setValueAtTime(659.25, now + 0.1);
+          osc.frequency.setValueAtTime(783.99, now + 0.2);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+          osc.start(now);
+          osc.stop(now + 0.45);
+        } else if (type === "wrong") {
+          osc.type = "sawtooth";
+          osc.frequency.setValueAtTime(220, now);
+          osc.frequency.linearRampToValueAtTime(140, now + 0.25);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          osc.start(now);
+          osc.stop(now + 0.3);
+        }
+      } catch (e) {
+        // Safe fallback
+      }
+    }
+
+    function speakText(text) {
+      if (!state.soundEnabled || !window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = state.currentLang === "cn" ? "zh-CN" : "en-US";
+      utterance.rate = 0.95;
+      utterance.pitch = 1.1;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    // ==========================================================================
+    // 4. RENDERING ENGINE: DUAL SYNCHRONOUS VIEW (FR-01 & FR-03)
+    // ==========================================================================
+    const orbitStage = document.getElementById("orbitStage");
+    const orbitMoon = document.getElementById("orbitMoon");
+    const orbitAngleSlider = document.getElementById("orbitAngleSlider");
+    const moonIllumination = document.getElementById("moonIllumination");
+    const phaseIndexTag = document.getElementById("phaseIndexTag");
+    const phaseName = document.getElementById("phaseName");
+    const phaseFeature = document.getElementById("phaseFeature");
+    const phaseExplainText = document.getElementById("phaseExplainText");
+    const phaseAnchors = document.querySelectorAll(".phase-anchor");
+
+    function renderEarthMoonShape(containerEl, angleDeg) {
+      let clipPathStr = "";
+
+      if (angleDeg >= 0 && angleDeg < 90) {
+        const curveX = 50 + 50 * (1 - angleDeg / 90);
+        clipPathStr = `path('M 50 0 A 50 50 0 0 1 50 100 A ${curveX} 50 0 0 0 50 0 Z')`;
+        if (angleDeg < 4) clipPathStr = "circle(0% at 50% 50%)";
+      } else if (angleDeg >= 90 && angleDeg < 180) {
+        const p = (angleDeg - 90) / 90;
+        const curveX = 50 * p;
+        clipPathStr = `path('M 50 0 A 50 50 0 0 1 50 100 A ${curveX} 50 0 0 1 50 0 Z')`;
+      } else if (angleDeg >= 180 && angleDeg < 270) {
+        const p = (angleDeg - 180) / 90;
+        const curveX = 50 * (1 - p);
+        clipPathStr = `path('M 50 0 A 50 50 0 0 0 50 100 A ${curveX} 50 0 0 0 50 0 Z')`;
+      } else {
+        const p = (angleDeg - 270) / 90;
+        const curveX = 50 * p;
+        clipPathStr = `path('M 50 0 A 50 50 0 0 0 50 100 A ${curveX} 50 0 0 1 50 0 Z')`;
+        if (angleDeg > 356) clipPathStr = "circle(0% at 50% 50%)";
+      }
+
+      try {
+        containerEl.style.clipPath = clipPathStr;
+      } catch (e) {
+        const rad = (angleDeg * Math.PI) / 180;
+        containerEl.style.opacity = Math.max(0, -Math.cos(rad));
+      }
+    }
+
+    function updateOrbitPosition(angleDeg, triggerAudioSnap = true) {
+      let normAngle = ((angleDeg % 360) + 360) % 360;
+      state.currentAngle = normAngle;
+
+      const stageRect = orbitStage.getBoundingClientRect();
+      const radius = (stageRect.width / 300) * 105;
+      const centerX = stageRect.width / 2;
+      const centerY = stageRect.height / 2;
+
+      const rad = (normAngle * Math.PI) / 180;
+      const moonX = centerX + radius * Math.cos(rad);
+      const moonY = centerY - radius * Math.sin(rad);
+
+      orbitMoon.style.left = `${moonX}px`;
+      orbitMoon.style.top = `${moonY}px`;
+      orbitMoon.setAttribute("aria-valuenow", Math.round(normAngle));
+      orbitAngleSlider.value = Math.round(normAngle);
+
+      renderEarthMoonShape(moonIllumination, normAngle);
+
+      let matchedPhase = null;
+      phaseAnchors.forEach(anchor => {
+        const targetDeg = parseFloat(anchor.getAttribute("data-deg"));
+        let diff = Math.abs(normAngle - targetDeg);
+        if (diff > 180) diff = 360 - diff;
+
+        if (diff <= 10) {
+          anchor.classList.add("active");
+          matchedPhase = MOON_PHASES.find(p => p.angle === targetDeg);
+        } else {
+          anchor.classList.remove("active");
+        }
+      });
+
+      if (matchedPhase) {
+        if (state.activePhaseIndex !== matchedPhase.index) {
+          state.activePhaseIndex = matchedPhase.index;
+          if (triggerAudioSnap) playTone("snap");
+        }
+        renderPhaseInfo(matchedPhase);
+      } else {
+        const closest = getClosestPhase(normAngle);
+        state.activePhaseIndex = closest.index;
+        renderPhaseInfo(closest);
+      }
+    }
+
+    function getClosestPhase(angleDeg) {
+      let minDiff = 999;
+      let closest = MOON_PHASES[0];
+      MOON_PHASES.forEach(p => {
+        let diff = Math.abs(angleDeg - p.angle);
+        if (diff > 180) diff = 360 - diff;
+        if (diff < minDiff) {
+          minDiff = diff;
+          closest = p;
+        }
+      });
+      return closest;
+    }
+
+    function renderPhaseInfo(phaseObj) {
+      const lang = state.currentLang;
+      const prefix = UI_TEXTS[lang].phaseTagPrefix;
+      const ofText = UI_TEXTS[lang].phaseTagOf;
+      phaseIndexTag.textContent = `${prefix}${phaseObj.index}${ofText}`;
+      phaseName.textContent = phaseObj.name[lang];
+      phaseFeature.textContent = phaseObj.feature[lang];
+      phaseExplainText.textContent = phaseObj.explain[lang];
+    }
+
+    // ==========================================================================
+    // 5. TOUCH & GESTURE DRAGGING ENGINE (FR-01)
+    // ==========================================================================
+    function handleOrbitDrag(clientX, clientY) {
+      const rect = orbitStage.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      const deltaX = clientX - centerX;
+      const deltaY = centerY - clientY;
+
+      let rad = Math.atan2(deltaY, deltaX);
+      let deg = (rad * 180) / Math.PI;
+      if (deg < 0) deg += 360;
+
+      const closest = getClosestPhase(deg);
+      let diff = Math.abs(deg - closest.angle);
+      if (diff > 180) diff = 360 - diff;
+
+      if (diff <= 10) {
+        deg = closest.angle;
+      }
+
+      updateOrbitPosition(deg, true);
+    }
+
+    orbitStage.addEventListener("touchstart", (e) => {
+      state.isDragging = true;
+      const t = e.touches[0];
+      handleOrbitDrag(t.clientX, t.clientY);
+    }, { passive: false });
+
+    window.addEventListener("touchmove", (e) => {
+      if (!state.isDragging) return;
+      e.preventDefault();
+      const t = e.touches[0];
+      handleOrbitDrag(t.clientX, t.clientY);
+    }, { passive: false });
+
+    window.addEventListener("touchend", () => {
+      state.isDragging = false;
+    });
+
+    orbitStage.addEventListener("mousedown", (e) => {
+      state.isDragging = true;
+      handleOrbitDrag(e.clientX, e.clientY);
+    });
+
+    window.addEventListener("mousemove", (e) => {
+      if (!state.isDragging) return;
+      handleOrbitDrag(e.clientX, e.clientY);
+    });
+
+    window.addEventListener("mouseup", () => {
+      state.isDragging = false;
+    });
+
+    orbitAngleSlider.addEventListener("input", (e) => {
+      updateOrbitPosition(parseFloat(e.target.value), false);
+    });
+
+    document.getElementById("btnPrevPhase").addEventListener("click", () => {
+      let prevIdx = (state.activePhaseIndex - 2 + 8) % 8;
+      const targetPhase = MOON_PHASES[prevIdx];
+      updateOrbitPosition(targetPhase.angle, true);
+    });
+
+    document.getElementById("btnNextPhase").addEventListener("click", () => {
+      let nextIdx = state.activePhaseIndex % 8;
+      const targetPhase = MOON_PHASES[nextIdx];
+      updateOrbitPosition(targetPhase.angle, true);
+    });
+
+    document.getElementById("btnSnapPhase").addEventListener("click", () => {
+      const closest = getClosestPhase(state.currentAngle);
+      updateOrbitPosition(closest.angle, true);
+    });
+
+    document.getElementById("btnSpeakPhase").addEventListener("click", () => {
+      const current = MOON_PHASES[state.activePhaseIndex - 1];
+      const lang = state.currentLang;
+      speakText(`${current.name[lang]}. ${current.explain[lang]}`);
+    });
+
+    // ==========================================================================
+    // 6. SCREEN NAVIGATION & TABS
+    // ==========================================================================
+    const screenTabs = document.querySelectorAll(".nav-tab");
+    const screens = document.querySelectorAll(".screen-view");
+
+    function switchScreen(targetScreenId) {
+      screens.forEach(s => s.classList.remove("active"));
+      screenTabs.forEach(t => t.classList.remove("active"));
+
+      const targetScreen = document.getElementById(targetScreenId);
+      if (targetScreen) targetScreen.classList.add("active");
+
+      const matchingTab = document.querySelector(`.nav-tab[data-screen="${targetScreenId}"]`);
+      if (matchingTab) matchingTab.classList.add("active");
+
+      if (targetScreenId === "screen-explorer") {
+        setTimeout(() => {
+          updateOrbitPosition(state.currentAngle, false);
+        }, 50);
+      } else if (targetScreenId === "screen-challenge") {
+        startNewQuizSession();
+      }
+    }
+
+    screenTabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        switchScreen(tab.getAttribute("data-screen"));
+      });
+    });
+
+    document.getElementById("btnStartExplorer").addEventListener("click", () => switchScreen("screen-explorer"));
+    document.getElementById("btnStartChallenge").addEventListener("click", () => switchScreen("screen-challenge"));
+    document.getElementById("btnGoQuizFromExplorer").addEventListener("click", () => switchScreen("screen-challenge"));
+    document.getElementById("btnBackToExplorer").addEventListener("click", () => {
+      document.getElementById("quizResultModal").classList.add("hidden");
+      switchScreen("screen-explorer");
+    });
+
+    // ==========================================================================
+    // 7. BILINGUAL SYSTEM (FR-02)
+    // ==========================================================================
+    const langToggleBtn = document.getElementById("langToggleBtn");
+    const langBtnText = document.getElementById("langBtnText");
+
+    function setLanguage(lang) {
+      state.currentLang = lang;
+      document.documentElement.lang = lang === "cn" ? "zh-Hans" : "en";
+      langBtnText.textContent = UI_TEXTS[lang].langBtn;
+      document.getElementById("appTitle").textContent = UI_TEXTS[lang].appTitle;
+
+      document.querySelectorAll("[data-i18n]").forEach(elem => {
+        const key = elem.getAttribute("data-i18n");
+        if (UI_TEXTS[lang][key]) {
+          elem.textContent = UI_TEXTS[lang][key];
+        }
+      });
+
+      const current = MOON_PHASES[state.activePhaseIndex - 1];
+      renderPhaseInfo(current);
+
+      if (state.quizSession.active) {
+        renderQuizQuestion();
+      }
+    }
+
+    langToggleBtn.addEventListener("click", () => {
+      const nextLang = state.currentLang === "en" ? "cn" : "en";
+      setLanguage(nextLang);
+    });
+
+    const audioToggleBtn = document.getElementById("audioToggleBtn");
+    const audioIcon = document.getElementById("audioIcon");
+
+    audioToggleBtn.addEventListener("click", () => {
+      state.soundEnabled = !state.soundEnabled;
+      audioIcon.textContent = state.soundEnabled ? "🔊" : "🔇";
+      if (state.soundEnabled) playTone("snap");
+    });
+
+    // ==========================================================================
+    // 8. CHALLENGE MODE: 3 QUIZ SUB-MODES & PROGRESSION (FR-04)
+    // ==========================================================================
+    const quizProgressText = document.getElementById("quizProgressText");
+    const quizProgressBar = document.getElementById("quizProgressBar");
+    const quizModeBadge = document.getElementById("quizModeBadge");
+    const challengeTitle = document.getElementById("challengeTitle");
+    const quizInteractiveArea = document.getElementById("quizInteractiveArea");
+    const quizFeedback = document.getElementById("quizFeedback");
+    const feedbackIcon = document.getElementById("feedbackIcon");
+    const feedbackText = document.getElementById("feedbackText");
+    const btnNextQuestion = document.getElementById("btnNextQuestion");
+    const quizResultModal = document.getElementById("quizResultModal");
+
+    function startNewQuizSession() {
+      quizResultModal.classList.add("hidden");
+      quizFeedback.classList.add("hidden");
+
+      const gameTypes = [1, 2, 3, 1, 2];
+      gameTypes.sort(() => Math.random() - 0.5);
+
+      const questions = gameTypes.map((type, idx) => {
+        const targetPhase = MOON_PHASES[Math.floor(Math.random() * MOON_PHASES.length)];
+        const distractors = MOON_PHASES.filter(p => p.index !== targetPhase.index)
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 2);
+
+        const options = [targetPhase, ...distractors].sort(() => Math.random() - 0.5);
+
+        return {
+          qIndex: idx + 1,
+          type: type,
+          targetPhase: targetPhase,
+          options: options,
+          answered: false
+        };
+      });
+
+      state.quizSession = {
+        active: true,
+        currentIndex: 0,
+        score: 0,
+        questions: questions
+      };
+
+      renderQuizQuestion();
+    }
+
+    function renderQuizQuestion() {
+      const session = state.quizSession;
+      const currentQ = session.questions[session.currentIndex];
+      const lang = state.currentLang;
+
+      quizProgressText.textContent = `${UI_TEXTS[lang].questionPrefix}${session.currentIndex + 1} / 5`;
+      quizProgressBar.style.width = `${((session.currentIndex + 1) / 5) * 100}%`;
+      quizFeedback.classList.add("hidden");
+      quizInteractiveArea.innerHTML = "";
+
+      if (currentQ.type === 1) {
+        quizModeBadge.textContent = UI_TEXTS[lang].spotPhaseBadge;
+        challengeTitle.textContent = lang === "en"
+          ? `Which card shows the ${currentQ.targetPhase.name.en}?`
+          : `哪一个卡片是 ${currentQ.targetPhase.name.cn}？`;
+
+        const grid = document.createElement("div");
+        grid.className = "visual-cards-grid";
+
+        currentQ.options.forEach((opt, idx) => {
+          const btn = document.createElement("button");
+          btn.className = "visual-card-btn";
+          btn.setAttribute("aria-label", `Option ${idx + 1}`);
+
+          const miniMoon = document.createElement("div");
+          miniMoon.className = "quiz-mini-moon";
+          const illum = document.createElement("div");
+          illum.className = "moon-illumination";
+          renderEarthMoonShape(illum, opt.angle);
+          miniMoon.appendChild(illum);
+
+          const tag = document.createElement("span");
+          tag.className = "card-opt-tag";
+          tag.textContent = `Card ${idx + 1}`;
+
+          btn.appendChild(miniMoon);
+          btn.appendChild(tag);
+
+          btn.addEventListener("click", () => handleAnswerSelected(btn, opt.index === currentQ.targetPhase.index, currentQ));
+          grid.appendChild(btn);
+        });
+
+        quizInteractiveArea.appendChild(grid);
+
+      } else if (currentQ.type === 2) {
+        quizModeBadge.textContent = UI_TEXTS[lang].nameMoonBadge;
+        challengeTitle.textContent = lang === "en"
+          ? "What is the name of this glowing moon?"
+          : "夜空中出现的这个月相叫什么名字？";
+
+        const sky = document.createElement("div");
+        sky.className = "sky-moon-display";
+
+        const largeMoon = document.createElement("div");
+        largeMoon.className = "sky-moon-large";
+        const illum = document.createElement("div");
+        illum.className = "moon-illumination";
+        renderEarthMoonShape(illum, currentQ.targetPhase.angle);
+        largeMoon.appendChild(illum);
+        sky.appendChild(largeMoon);
+        quizInteractiveArea.appendChild(sky);
+
+        const list = document.createElement("div");
+        list.className = "name-options-list";
+
+        currentQ.options.forEach(opt => {
+          const btn = document.createElement("button");
+          btn.className = "name-opt-btn btn-touch";
+          btn.textContent = opt.name[lang];
+          btn.addEventListener("click", () => handleAnswerSelected(btn, opt.index === currentQ.targetPhase.index, currentQ));
+          list.appendChild(btn);
+        });
+
+        quizInteractiveArea.appendChild(list);
+
+      } else if (currentQ.type === 3) {
+        quizModeBadge.textContent = UI_TEXTS[lang].orbitSlotBadge;
+        challengeTitle.textContent = lang === "en"
+          ? "The Moon is here on its orbit! What does it look like from Earth?"
+          : "月球停在轨道这个位置，从地球望远镜看是什么形状？";
+
+        const slotContainer = document.createElement("div");
+        slotContainer.className = "orbit-slot-container";
+
+        const diagram = document.createElement("div");
+        diagram.className = "orbit-slot-diagram";
+
+        const sunIndicator = document.createElement("span");
+        sunIndicator.className = "slot-sun-arrow";
+        sunIndicator.textContent = "☀️ Sun ▶";
+        diagram.appendChild(sunIndicator);
+
+        const centerEarth = document.createElement("span");
+        centerEarth.style.fontSize = "1.8rem";
+        centerEarth.textContent = "🌍";
+        diagram.appendChild(centerEarth);
+
+        const fixedMoon = document.createElement("div");
+        fixedMoon.className = "slot-fixed-moon";
+        const rad = (currentQ.targetPhase.angle * Math.PI) / 180;
+        const mx = 100 + 70 * Math.cos(rad);
+        const my = 100 - 70 * Math.sin(rad);
+        fixedMoon.style.left = `${mx}px`;
+        fixedMoon.style.top = `${my}px`;
+        fixedMoon.textContent = "🌙";
+        diagram.appendChild(fixedMoon);
+
+        slotContainer.appendChild(diagram);
+
+        const optRow = document.createElement("div");
+        optRow.className = "slot-options-row";
+
+        currentQ.options.forEach((opt, idx) => {
+          const cardBtn = document.createElement("button");
+          cardBtn.className = "visual-card-btn";
+          cardBtn.style.flex = "1";
+          cardBtn.setAttribute("aria-label", `Shape choice ${idx + 1}`);
+
+          const miniMoon = document.createElement("div");
+          miniMoon.className = "quiz-mini-moon";
+          const illum = document.createElement("div");
+          illum.className = "moon-illumination";
+          renderEarthMoonShape(illum, opt.angle);
+          miniMoon.appendChild(illum);
+
+          cardBtn.appendChild(miniMoon);
+          cardBtn.addEventListener("click", () => handleAnswerSelected(cardBtn, opt.index === currentQ.targetPhase.index, currentQ));
+          optRow.appendChild(cardBtn);
+        });
+
+        slotContainer.appendChild(optRow);
+        quizInteractiveArea.appendChild(slotContainer);
+      }
+    }
+
+    function handleAnswerSelected(buttonEl, isCorrect, questionObj) {
+      if (questionObj.answered) return;
+      questionObj.answered = true;
+
+      const lang = state.currentLang;
+      quizFeedback.classList.remove("hidden");
+
+      const allBtns = quizInteractiveArea.querySelectorAll("button");
+      allBtns.forEach(b => b.style.pointerEvents = "none");
+
+      if (isCorrect) {
+        state.quizSession.score++;
+        buttonEl.classList.add("correct");
+        quizFeedback.classList.remove("wrong");
+        feedbackIcon.textContent = "🎉";
+        feedbackText.textContent = lang === "en" 
+          ? `Terrific! That is the ${questionObj.targetPhase.name.en}!`
+          : `太棒了！答对啦，这就是 ${questionObj.targetPhase.name.cn}！`;
+        playTone("correct");
+      } else {
+        buttonEl.classList.add("wrong");
+        quizFeedback.classList.add("wrong");
+        feedbackIcon.textContent = "💡";
+        feedbackText.textContent = lang === "en"
+          ? `Nice try! The correct one was ${questionObj.targetPhase.name.en}.`
+          : `差一点点！正确答案是 ${questionObj.targetPhase.name.cn}。`;
+        playTone("wrong");
+      }
+    }
+
+    btnNextQuestion.addEventListener("click", () => {
+      const session = state.quizSession;
+      if (session.currentIndex < session.questions.length - 1) {
+        session.currentIndex++;
+        renderQuizQuestion();
+      } else {
+        showQuizResults();
+      }
+    });
+
+    function showQuizResults() {
+      const score = state.quizSession.score;
+      const lang = state.currentLang;
+      quizResultModal.classList.remove("hidden");
+
+      const resultStars = document.getElementById("resultStars");
+      const resultScoreText = document.getElementById("resultScoreText");
+
+      let stars = "⭐";
+      if (score >= 4) {
+        stars = "⭐⭐⭐";
+      } else if (score >= 2) {
+        stars = "⭐⭐";
+      }
+      resultStars.textContent = stars;
+
+      if (lang === "en") {
+        resultScoreText.textContent = `You scored ${score} out of 5!`;
+      } else {
+        resultScoreText.textContent = `你在 5 道题目中答对了 ${score} 道！`;
+      }
+
+      playTone("correct");
+    }
+
+    document.getElementById("btnRetryQuiz").addEventListener("click", () => {
+      startNewQuizSession();
+    });
+
+    // ==========================================================================
+    // 9. APP INITIALIZATION
+    // ==========================================================================
+    window.addEventListener("DOMContentLoaded", () => {
+      setLanguage("en");
+      updateOrbitPosition(0, false);
+
+      window.addEventListener("resize", () => {
+        updateOrbitPosition(state.currentAngle, false);
+      });
+    });
+  </script>
+</body>
+</html>
